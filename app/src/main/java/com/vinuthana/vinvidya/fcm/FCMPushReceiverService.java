@@ -1,0 +1,93 @@
+package com.vinuthana.vinvidya.fcm;
+
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+import com.vinuthana.vinvidya.R;
+import com.vinuthana.vinvidya.activities.daytoday.HomeWorkActivity;
+import com.vinuthana.vinvidya.activities.noticeboard.NoticeActivity;
+
+import java.util.Random;
+
+
+/**
+ * Created by Anirudh on 10/07/16.
+ */
+public class FCMPushReceiverService extends FirebaseMessagingService {
+
+    public static final int REQUEST_CODE = 0;
+
+    public static final String KEY = "message";
+    int cnt=0;
+    private static final String TAG = "FCMPushReceiverService";
+
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.e(TAG, "From: " + remoteMessage.getFrom());
+        String strTitle=remoteMessage.getNotification().getTitle();
+        String strMessage = remoteMessage.getNotification().getBody();
+        String strClickAction = remoteMessage.getNotification().getClickAction();
+        pushNotification(strMessage, strClickAction);
+        navigateToactivity(strClickAction,strTitle,strMessage);
+    }
+
+    public void pushNotification(String message, String clickAtion){
+        Intent ii = new Intent(clickAtion);
+        ii.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE, ii, PendingIntent.FLAG_ONE_SHOT);
+        // setting notificaion sound
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        // build notification
+        Bitmap largIcon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
+                R.mipmap.ic_launcher);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher).setColor(getResources().getColor(R.color.colorPrimary))
+                .setVibrate(new long[] { 200, 200, 0, 0, 0 })
+                .setContentTitle(getString(R.string.app_name))
+
+                .setLargeIcon(largIcon)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setSound(soundUri)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Random random = new Random();
+        int id = random.nextInt();
+        notificationManager.notify(id,notificationBuilder.build());
+    }
+    public  void navigateToactivity(String strNotificationCode,String strTitle,String strMessage){
+        Intent intent=new Intent();
+        int notificationCode=Integer.parseInt(strNotificationCode);
+        switch (notificationCode){
+            case  1 : intent= new Intent(getApplicationContext(), NoticeActivity.class);
+                                break;
+            case 2: intent=new Intent(getApplicationContext(), HomeWorkActivity.class);
+                                break;
+        }
+        startActivity(intent);
+        /*if(strTitle.equalsIgnoreCase("Notice")){
+             intent= new Intent(getApplicationContext(), NoticeActivity.class);
+        }*/
+
+    }
+
+}
+
+// http://apns-gcm.bryantan.info/
+
+/*
+        NotificationCompat notificationCompat = new NotificationCompat.BigTextStyle(notificationBuilder).bigText(message).build();
+        //Notification notification = new Notification.BigTextStyle(notificationBuilder).bigText(message).build()*/
