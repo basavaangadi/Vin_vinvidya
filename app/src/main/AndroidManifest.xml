@@ -3,7 +3,7 @@
     package="com.vinuthana.vinvidya">
 
     <uses-sdk
-        android:minSdkVersion="15"
+
         android:targetSdkVersion="26" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
